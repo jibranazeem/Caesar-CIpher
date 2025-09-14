@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Caesar Cipher – Encrypt / Decrypt</title>
+  <style>
+    :root{--bg:#0f1220;--card:#151a2e;--muted:#8c94bd;--text:#e7eaff;--primary:#7c5cff;--accent:#3ed6a5;--danger:#ff6b6b}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;background:radial-gradient(1200px 600px at 80% -10%, #1b2143 0%, #0f1220 60%);color:var(--text)}
+    .wrap{max-width:1000px;margin:36px auto;padding:0 16px}
+    .title{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+    .title h1{font-size:26px;margin:0}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;background:#1a1f3c;border:1px solid rgba(124,92,255,.25);font-size:12px;color:var(--muted)}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border:1px solid rgba(124,92,255,.25);border-radius:16px;padding:16px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+    textarea,input{width:100%;border-radius:12px;border:1px solid rgba(124,92,255,.35);background:#0e1330;color:var(--text);padding:12px;outline:none}
+    textarea{min-height:160px;resize:vertical}
+    .row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:10px}
+    .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+    button{border:none;border-radius:12px;padding:10px 14px;background:var(--primary);color:#fff;cursor:pointer;font-weight:600}
+    button.secondary{background:#2a2f52}
+    button.ghost{background:transparent;border:1px solid rgba(124,92,255,.35)}
+    button.success{background:var(--accent)}
+    button.danger{background:var(--danger)}
+    .help{font-size:12px;color:var(--muted)}
+    footer{margin-top:16px;color:var(--muted);font-size:12px}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}.row{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="title">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z" stroke="#7c5cff" stroke-width="1.5"/><path d="M7.5 9.5h9M7.5 14.5h5" stroke="#7c5cff" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <h1>Caesar Cipher – Encrypt / Decrypt</h1>
+      <span class="pill">Client‑side • JavaScript only</span>
+    </div>
+
+    <div class="card">
+      <div class="grid">
+        <div>
+          <label>Input (Plain Text)</label>
+          <textarea id="plain" placeholder="Likhein: Yahan apni statement..."></textarea>
+          <div class="btns">
+            <button class="ghost" id="sample">Sample</button>
+            <button class="ghost" id="clearPlain">Clear</button>
+            <button class="ghost" id="copyPlain">Copy</button>
+          </div>
+        </div>
+        <div>
+          <label>Output (Cipher Text)</label>
+          <textarea id="cipher" placeholder="Yahan encrypted/decrypted result aayega..."></textarea>
+          <div class="btns">
+            <button class="ghost" id="clearCipher">Clear</button>
+            <button class="ghost" id="copyCipher">Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Shift (−25 … 25)</label>
+          <input id="shift" type="number" min="-25" max="25" value="3" />
+          <div class="help">Negative shift = left, positive = right. Non‑letters stay unchanged.</div>
+        </div>
+      </div>
+
+      <div class="btns">
+        <button id="encrypt" class="success">Encrypt →</button>
+        <button id="decrypt" class="danger">← Decrypt</button>
+        <button id="swap" class="secondary">Swap (⇄)</button>
+      </div>
+
+      <footer>
+        Example: "HELLO" with shift 3 → "KHOOR". Lower/upper case preserved.
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // ----- Elements
+    const $ = (id)=>document.getElementById(id);
+    const plain = $("plain"), cipher = $("cipher"), shiftEl = $("shift");
+
+    // ----- Caesar core
+    const norm = (n)=>((n%26)+26)%26; // wrap into 0..25
+    function shiftChar(ch, s){
+      const c = ch.charCodeAt(0);
+      if(c>=65 && c<=90) return String.fromCharCode(((c-65+norm(s))%26)+65);
+      if(c>=97 && c<=122) return String.fromCharCode(((c-97+norm(s))%26)+97);
+      return ch; // keep non‑letters
+    }
+    function caesar(text, s){ return [...text].map(ch=>shiftChar(ch, s)).join(""); }
+
+    // ----- UI actions
+    $("encrypt").onclick = ()=>{ const s = Number(shiftEl.value)||0; cipher.value = caesar(plain.value, s); toast("Encrypted"); };
+    $("decrypt").onclick = ()=>{ const s = Number(shiftEl.value)||0; plain.value  = caesar(cipher.value, -s); toast("Decrypted"); };
+    $("swap").onclick    = ()=>{ const t = plain.value; plain.value=cipher.value; cipher.value=t; };
+
+    $("clearPlain").onclick = ()=> plain.value = "";
+    $("clearCipher").onclick = ()=> cipher.value = "";
+    $("copyPlain").onclick  = async ()=>{ await navigator.clipboard.writeText(plain.value||""); toast("Plain copied"); };
+    $("copyCipher").onclick = async ()=>{ await navigator.clipboard.writeText(cipher.value||""); toast("Cipher copied"); };
+
+    $("sample").onclick = ()=>{
+      plain.value = "Assalam o Alaikum! Caesar cipher demo.";
+      shiftEl.value = 3;
+      cipher.value = caesar(plain.value, Number(shiftEl.value));
+    };
+
+    // ----- Tiny toast helper
+    function toast(msg){
+      const t = document.createElement('div');
+      t.textContent = msg;
+      Object.assign(t.style, {position:'fixed',bottom:'18px',right:'18px',padding:'10px 14px',borderRadius:'12px',background:'rgba(20,24,46,.95)',color:'#fff',border:'1px solid rgba(124,92,255,.5)',boxShadow:'0 6px 20px rgba(0,0,0,.35)',zIndex:9999,transition:'opacity .3s',opacity:1});
+      document.body.appendChild(t); setTimeout(()=>{t.style.opacity=0; setTimeout(()=>t.remove(),300)}, 1200);
+    }
+  </script>
+</body>
+</html>
